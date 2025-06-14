@@ -48,6 +48,7 @@ label {
 }
 
 input[type="text"],
+input[type="message"],
 input[type="email"],
 input[type="date"],
 input[type="time"] {
