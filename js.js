@@ -147,6 +147,80 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     gameContainer.appendChild(overlay);
 
+    // --- inline mobile support (was mobile-support.js) ---
+    // creates a full-canvas touch overlay and prevents overscroll when game active
+    let touchOverlay = null;
+    function enableMobileSupport() {
+        // make canvas touch-friendly
+        try { canvas.style.touchAction = 'none'; } catch (e) {}
+
+        // create a transparent overlay that covers the canvas for reliable touch input
+        touchOverlay = document.createElement('div');
+        Object.assign(touchOverlay.style, {
+            position: 'absolute',
+            left: '0',
+            top: '0',
+            width: '100%',
+            height: '100%',
+            zIndex: 50,
+            background: 'transparent',
+            display: 'none',
+            touchAction: 'none',
+            WebkitTapHighlightColor: 'transparent'
+        });
+        // route pointer events to jump handlers
+        touchOverlay.addEventListener('pointerdown', (e) => { e.preventDefault(); tryJump(); }, { passive: false });
+        touchOverlay.addEventListener('pointerup', (e) => { e.preventDefault(); endJump(); }, { passive: false });
+        touchOverlay.addEventListener('touchstart', (e) => { e.preventDefault(); tryJump(); }, { passive: false });
+        touchOverlay.addEventListener('touchend', (e) => { e.preventDefault(); endJump(); }, { passive: false });
+        gameContainer.appendChild(touchOverlay);
+
+        // prevent body overscroll while the game container is visible
+        document.addEventListener('touchmove', (e) => {
+            if (gameContainer && getComputedStyle(gameContainer).display !== 'none') {
+                // only prevent when touching inside game area
+                const r = gameContainer.getBoundingClientRect();
+                const t = e.touches && e.touches[0];
+                if (t && t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom) {
+                    e.preventDefault();
+                }
+            }
+        }, { passive: false });
+
+        // orientation / resize helper
+        window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 120));
+        window.addEventListener('resize', () => { if (gameContainer && getComputedStyle(gameContainer).display !== 'none') resizeCanvas(); });
+
+        // page visibility -> pause on background
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                if (running) running = false;
+            } else {
+                // resume only if the game previously had been running
+                if (!running && typeof last === 'number') {
+                    last = performance.now();
+                    running = true;
+                    requestAnimationFrame(loop);
+                }
+            }
+        });
+
+        // request fullscreen on first user interaction (mobile)
+        const requestFS = (e) => {
+            try {
+                if (document.fullscreenEnabled && document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen().catch(()=>{});
+                }
+            } catch (err) {}
+            // remove this one-time listener
+            window.removeEventListener('touchstart', requestFS, { passive: true });
+        };
+        window.addEventListener('touchstart', requestFS, { passive: true });
+    }
+
+    // enable mobile support immediately (safe — will bail if not needed)
+    enableMobileSupport();
+
     // --- state ---
     let running = false;
     let last = 0;
@@ -719,6 +793,8 @@ document.addEventListener('DOMContentLoaded', () => {
         initBackground();
         hideOverlayAndRestoreRestart();
         jumpBtn.style.display = isMobile() ? 'block' : 'none';
+        // show the full-canvas touch overlay on mobile for reliable input
+        if (touchOverlay) touchOverlay.style.display = isMobile() ? 'block' : 'none';
         running = true;
         last = performance.now();
         requestAnimationFrame(loop);
