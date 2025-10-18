@@ -1,47 +1,248 @@
+/* Monochrome (Black & White) theme for the whole main page */
+
+:root{
+  --white: #ffffff;
+  --offwhite: #f6f6f6;
+  --light-gray: #e5e5e5;
+  --mid-gray: #bdbdbd;
+  --dark-gray: #4a4a4a;
+  --black: #0b0b0b;
+  --glass: rgba(255,255,255,0.03);
+  --vignette: rgba(0,0,0,0.6);
+}
+
+/* Page base */
+html, body { height: 100%; }
 body {
-    font-family: "Poppins", sans-serif;
-    background: linear-gradient(to bottom, #f4f4f4, #ddd);
-    margin: 0;
-    padding: 0;
-    text-align: center;
-  }
+  font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  margin: 0;
+  padding: 0;
+  color: var(--black);
+  /* smooth, continuous gradient shift */
+  background: linear-gradient(90deg, var(--offwhite) 0%, var(--light-gray) 28%, var(--mid-gray) 66%, var(--black) 100%);
+  background-size: 400% 400%;
+  animation: pageFadeIn 700ms ease both, gradientShift 28s ease-in-out infinite;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
-  header {
-    background-color: #222;
-    color: white;
-    padding: 20px;
-    font-size: 24px;
-  }
+/* Header */
+header {
+  width: 100%;
+  max-width: 900px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(240,240,240,0.95));
+  color: var(--black);
+  padding: 18px 24px;
+  margin-top: 18px;
+  font-size: 20px;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transform: translateY(-6px);
+  animation: slideInDown 500ms ease both;
+  position: relative; /* allow ::after glow layer */
+  transition: transform 200ms ease, box-shadow 280ms ease;
+}
 
-  main {
-    max-width: 700px;
-    margin: 40px auto;
-    font-size: 18px;
-    line-height: 1.6;
-  }
+/* subtle glowing effect on hover */
+header:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 50px rgba(255,255,255,0.04), 0 6px 18px rgba(0,0,0,0.45);
+}
 
-  button {
-    background-color: #ff7f00;
-    color: white;
-    border: none;
-    padding: 14px 28px;
-    border-radius: 8px;
-    font-size: 18px;
-    cursor: pointer;
-    transition: background 0.3s ease;
-  }
+/* additive glow layer for a soft outer bloom */
+header::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 12px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 260ms ease, filter 260ms ease;
+  filter: blur(8px);
+}
 
-  button:hover {
-    background-color: #e66d00;
-  }
+header:hover::after {
+  opacity: 1;
+  filter: blur(14px);
+  box-shadow: 0 18px 56px rgba(255,255,255,0.06), 0 0 28px rgba(255,255,255,0.03);
+  mix-blend-mode: screen;
+}
 
-  #gameContainer {
-    display: none;
-    margin-top: 40px;
-  }
+/* main content panel */
+main {
+  width: 100%;
+  max-width: 900px;
+  margin: 18px auto;
+  font-size: 18px;
+  line-height: 1.6;
+  background: linear-gradient(180deg, var(--white), var(--offwhite));
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+  color: var(--black);
+}
 
-  canvas {
-    background: #222;
-    border: 3px solid #ff7f00;
-    border-radius: 10px;
-  }
+/* Buttons - monochrome style */
+button {
+  background: linear-gradient(180deg, var(--black), #222);
+  color: var(--white);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.04);
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+button:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(0,0,0,0.28); }
+button:active { transform: translateY(-1px) scale(0.99); }
+
+/* Primary Reveal / Play button placement */
+#startButton, #playButton {
+  position: relative;
+  margin: 14px auto;
+  display: inline-block;
+  font-weight: 600;
+  outline: none;
+  animation: pulse 1400ms ease-in-out infinite;
+}
+
+/* Reduce pulse once game visible */
+#gameContainer[aria-hidden="false"] + #startButton,
+#startButton[aria-hidden="false"] {
+  animation: none;
+}
+
+/* Game container styling */
+#gameContainer {
+  position: relative;
+  overflow: visible;
+  border-radius: 12px;
+  margin-top: 20px;
+  width: 100%;
+  max-width: 760px;
+  display: block;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
+}
+
+/* add a vignette overlay on the container */
+#gameContainer::after{
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  box-shadow:
+    inset 0 80px 90px rgba(0,0,0,0.18),
+    inset 0 -80px 100px rgba(0,0,0,0.22),
+    0 18px 36px rgba(0,0,0,0.18);
+}
+
+/* Canvas styling — pure monochrome */
+canvas {
+  background: linear-gradient(180deg, rgba(10,10,10,0.98), rgba(18,18,18,0.98));
+  border: 2px solid rgba(255,255,255,0.04);
+  border-radius: 10px;
+  width: 100%;
+  height: auto;
+  box-shadow: 0 28px 60px rgba(0,0,0,0.6), inset 0 -12px 24px rgba(255,255,255,0.02);
+  transition: transform 400ms cubic-bezier(.2,.9,.3,1);
+}
+
+/* HUD (ensure visibility on monochrome background) */
+.hud {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  color: var(--white);
+  font-weight: 600;
+  z-index: 60;
+  text-shadow: 0 6px 18px rgba(0,0,0,0.75);
+  letter-spacing: 0.6px;
+}
+
+/* small jump button for mobile (monochrome) */
+#jumpBtn {
+  right: 18px;
+  bottom: 18px;
+  z-index: 60;
+  background: linear-gradient(180deg, #333, var(--black));
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+}
+
+/* Restart button style when moved into overlay box */
+#restartButton {
+  background: linear-gradient(90deg,#111,#333);
+  color: var(--white);
+  padding: 10px 16px;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+/* Overlay message box */
+#gameOverlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 80;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+#gameOverlay > div {
+  pointer-events: auto;
+  background: linear-gradient(180deg, rgba(20,20,20,0.9), rgba(6,6,6,0.9));
+  border: 1px solid rgba(255,255,255,0.03);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.8);
+  color: var(--white);
+}
+
+/* subtle animated accents (kept monochrome) */
+@keyframes pulse {
+  0% { transform: translateY(0) scale(1); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+  50% { transform: translateY(-6px) scale(1.02); box-shadow: 0 18px 36px rgba(0,0,0,0.22); }
+  100% { transform: translateY(0) scale(1); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+}
+@keyframes pageFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideInDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+
+/* animated gradient keyframes */
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  25%  { background-position: 25% 55%; }
+  50%  { background-position: 50% 50%; }
+  75%  { background-position: 75% 45%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* dust/grain overlay (subtle) */
+#gameContainer .dust {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(255,255,255,0.02) 1px, transparent 2px);
+  background-size: 140px 140px;
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+  animation: dustShift 40s linear infinite;
+}
+@keyframes dustShift { from { transform: translateX(0); } to { transform: translateX(-80px); } }
+
+/* Responsive tweaks */
+@media (max-width: 720px) {
+  header { padding: 14px; font-size: 18px; border-radius: 10px; }
+  main { margin: 12px; padding: 14px; border-radius: 10px; }
+  #startButton, #playButton { width: calc(100% - 40px); padding: 12px; font-size: 16px; }
+  canvas { border-radius: 10px; }
+  #jumpBtn { right: 12px; bottom: 12px; padding: 10px 14px; }
+}
